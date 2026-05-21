@@ -76,7 +76,7 @@ public class UserService implements IUserService {
     @Override
     public ResponseEntity<GetUserDto> updateUser(Long id, PutUserDto putUserDto) {
         User existUser = userRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(()-> new IdNotFoundException("User with id: "+putUserDto.getId()+" not found"));
+                .orElseThrow(()-> new IdNotFoundException("User not found"));
         existUser.setName(putUserDto.getName());
         existUser.setEmail(putUserDto.getEmail());
         existUser.setPhone(putUserDto.getPhone());
