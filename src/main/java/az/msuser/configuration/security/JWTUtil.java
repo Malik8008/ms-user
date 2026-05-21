@@ -2,6 +2,7 @@ package az.msuser.configuration.security;
 
 import az.msuser.model.User;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +24,7 @@ public class JWTUtil {
     public String generateToken(User user) {
         return Jwts.builder()
                 .subject(user.getPhone())
+                .claim("role", user.getRole().name())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
                 .signWith(getSigningKey(),Jwts.SIG.HS256)
@@ -41,11 +43,15 @@ public class JWTUtil {
         return parseToken(token).getSubject();
     }
 
+    public String extractRole(String token) {
+        return parseToken(token).get("role", String.class);
+    }
+
     public boolean validateToken(String token) {
         try {
-            String username = extractUsername(token);
-            return username != null && !username.isEmpty();
-        } catch (Exception e) {
+            parseToken(token);
+            return true;
+        } catch (JwtException e) {
             return false;
         }
     }

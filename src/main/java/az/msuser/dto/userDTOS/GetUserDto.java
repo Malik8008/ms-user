@@ -1,5 +1,6 @@
 package az.msuser.dto.userDTOS;
 
+import az.msuser.Enum.UserRole;
 import lombok.Data;
 
 @Data
@@ -9,4 +10,5 @@ public class GetUserDto {
     String email;
     String password;
     String phone;
+    UserRole role;
 }

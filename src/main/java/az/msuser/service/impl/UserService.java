@@ -1,5 +1,6 @@
 package az.msuser.service.impl;
 
+import az.msuser.Enum.UserRole;
 import az.msuser.configuration.security.JWTUtil;
 import az.msuser.dto.AuthDTOS.LoginDTO;
 import az.msuser.dto.userDTOS.GetUserDto;
@@ -16,6 +17,9 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -69,14 +73,26 @@ public class UserService implements IUserService {
         newUser.setPassword(passwordEncoder.encode(postUserDto.getPassword()));
         newUser.setEmail(postUserDto.getEmail());
         newUser.setName(postUserDto.getName());
+        newUser.setRole(UserRole.USER);
         userRepository.save(newUser);
         return modelMapper.map(newUser, GetUserDto.class);
     }
 
     @Override
-    public ResponseEntity<GetUserDto> updateUser(Long id, PutUserDto putUserDto) {
+    public ResponseEntity<GetUserDto> updateUser(Long id, PutUserDto putUserDto, Authentication auth) {
         User existUser = userRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(()-> new IdNotFoundException("User not found"));
+
+        boolean isUser = auth.getAuthorities()
+                .contains(new SimpleGrantedAuthority("ROLE_USER"));
+
+        if (isUser) {
+            String currentPhone = auth.getName();
+
+            if (!existUser.getPhone().equals(currentPhone)) {
+                throw new AccessDeniedException("You can only update yourself");
+            }
+        }
         existUser.setName(putUserDto.getName());
         existUser.setEmail(putUserDto.getEmail());
         existUser.setPhone(putUserDto.getPhone());

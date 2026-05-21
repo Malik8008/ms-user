@@ -7,6 +7,7 @@ import az.msuser.dto.userDTOS.PutUserDto;
 import az.msuser.service.impl.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -38,14 +39,12 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<GetUserDto> update(@PathVariable Long id, @RequestBody PutUserDto putUserDto){
-        return userService.updateUser(id,putUserDto);
+    public ResponseEntity<GetUserDto> update(@PathVariable Long id, @RequestBody PutUserDto putUserDto, Authentication auth){
+        return userService.updateUser(id,putUserDto,auth);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id){
         return userService.deleteUser(id);
     }
-
-
 }

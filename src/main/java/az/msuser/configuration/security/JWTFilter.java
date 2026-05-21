@@ -8,12 +8,15 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -29,8 +32,13 @@ public class JWTFilter extends OncePerRequestFilter {
 
         if (path.startsWith("/swagger-ui")
                 || path.startsWith("/v3/api-docs")
+                || path.startsWith("/swagger-resources")
+                || path.startsWith("/webjars")
                 || path.equals("/swagger-ui.html")
-                || path.startsWith("/user/")) {
+                || path.equals("/swagger-ui/index.html")
+                || path.startsWith("/user/register")
+                || path.startsWith("/user/login")) {
+
             filterChain.doFilter(request, response);
             return;
         }
@@ -45,13 +53,10 @@ public class JWTFilter extends OncePerRequestFilter {
         String token = authHeader.substring(7);
 
         String phone;
-
         try {
-            phone = jwtUtil.extractUsername(token);
-
             if (!jwtUtil.validateToken(token)) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Unauthorized: Token invalid");
+                response.getWriter().write("Token invalid");
                 return;
             }
 
@@ -60,15 +65,15 @@ public class JWTFilter extends OncePerRequestFilter {
             response.getWriter().write("Unauthorized: Token error");
             return;
         }
+        phone = jwtUtil.extractUsername(token);
+        String role = jwtUtil.extractRole(token);
+        List<GrantedAuthority> authorities =
+                List.of(new SimpleGrantedAuthority("ROLE_" + role));
 
-        Authentication authentication =
-                new UsernamePasswordAuthenticationToken(
-                        phone,
-                        null,
-                        new ArrayList<>()
-                );
+        Authentication auth =
+                new UsernamePasswordAuthenticationToken(phone, null, authorities);
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        SecurityContextHolder.getContext().setAuthentication(auth);
 
         filterChain.doFilter(request, response);
     }
