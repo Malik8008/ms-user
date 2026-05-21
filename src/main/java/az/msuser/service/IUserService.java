@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import java.util.List;
 
 public interface IUserService {
-    ResponseEntity<List<GetUserDto>> GetUsers();
+    ResponseEntity<List<GetUserDto>> getUsers();
     ResponseEntity<GetUserDto> findById(Long id);
     ResponseEntity<String> loginUser(LoginDTO loginDTO);
     GetUserDto registerUser(PostUserDto postUserDto);

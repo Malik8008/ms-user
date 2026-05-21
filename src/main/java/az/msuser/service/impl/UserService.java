@@ -5,6 +5,9 @@ import az.msuser.dto.AuthDTOS.LoginDTO;
 import az.msuser.dto.userDTOS.GetUserDto;
 import az.msuser.dto.userDTOS.PostUserDto;
 import az.msuser.dto.userDTOS.PutUserDto;
+import az.msuser.exception.IdNotFoundException;
+import az.msuser.exception.PhoneNotFoundException;
+import az.msuser.exception.UserAlreadyExistException;
 import az.msuser.model.User;
 import az.msuser.repository.UserRepository;
 import az.msuser.service.IUserService;
@@ -29,21 +32,23 @@ public class UserService implements IUserService {
     private final UserRepository userRepository;
 
     @Override
-    public ResponseEntity<List<GetUserDto>> GetUsers() {
+    public ResponseEntity<List<GetUserDto>> getUsers() {
         List<GetUserDto> users = userRepository.findAllByDeletedFalse().stream()
                 .map(user -> modelMapper.map(user, GetUserDto.class)).toList();
-        return ResponseEntity.ok().body(users);
+        return ResponseEntity.ok(users);
     }
 
     @Override
     public ResponseEntity<GetUserDto> findById(Long id) {
-        User user = userRepository.findByIdAndDeletedFalse(id).orElseThrow(()->new EntityNotFoundException("User not found"));
+        User user = userRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(()->new IdNotFoundException("User id not found"));
         return ResponseEntity.ok().body(modelMapper.map(user, GetUserDto.class));
     }
 
     @Override
     public ResponseEntity<String> loginUser(LoginDTO loginDTO) {
-        User existUser = userRepository.findByPhone(loginDTO.getPhone()).orElseThrow(()->new EntityNotFoundException("User with phone " + loginDTO.getPhone() + " not found"));
+        User existUser = userRepository.findByPhone(loginDTO.getPhone())
+                .orElseThrow(()->new PhoneNotFoundException("User with phone " + loginDTO.getPhone() + " not found"));
         if (!passwordEncoder.matches(loginDTO.getPassword(), existUser.getPassword())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -57,7 +62,7 @@ public class UserService implements IUserService {
                 userRepository.findByPhone(postUserDto.getPhone());
 
         if (existUser.isPresent()) {
-            throw new RuntimeException("User already exists");
+            throw new UserAlreadyExistException("User already exists");
         }
         User newUser= modelMapper.map(postUserDto, User.class);
         newUser.setPhone(postUserDto.getPhone());
@@ -70,11 +75,30 @@ public class UserService implements IUserService {
 
     @Override
     public ResponseEntity<GetUserDto> updateUser(Long id, PutUserDto putUserDto) {
-        return null;
+        User existUser = userRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(()-> new IdNotFoundException("User with id: "+putUserDto.getId()+" not found"));
+        existUser.setName(putUserDto.getName());
+        existUser.setEmail(putUserDto.getEmail());
+        existUser.setPhone(putUserDto.getPhone());
+        existUser.setPassword(passwordEncoder.encode(putUserDto.getPassword()));
+
+        User newUser= userRepository.save(existUser);
+
+        GetUserDto response = new GetUserDto();
+        response.setId(newUser.getId());
+        response.setName(newUser.getName());
+        response.setEmail(newUser.getEmail());
+        response.setPhone(newUser.getPhone());
+        response.setPassword(passwordEncoder.encode(newUser.getPassword()));
+        return ResponseEntity.ok(response);
     }
 
     @Override
     public ResponseEntity<Void> deleteUser(Long id) {
-        return null;
+        User existUser = userRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(()-> new EntityNotFoundException("User not found"));
+        existUser.setDeleted(true);
+        userRepository.save(existUser);
+        return ResponseEntity.noContent().build();
     }
 }

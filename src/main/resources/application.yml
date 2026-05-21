@@ -16,6 +16,7 @@ spring:
 server:
   port: 8081
 
+
 jwt:
   secret: k8d9F@1xQmPz!93LxW0sA9d#2pVb7nXc
 kind: Application

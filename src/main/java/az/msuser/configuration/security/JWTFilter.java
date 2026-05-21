@@ -25,14 +25,13 @@ public class JWTFilter extends OncePerRequestFilter {
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-        String requestUri = request.getRequestURI();
+        String path = request.getServletPath();
 
-        if (requestUri.contains("/swagger-ui")
-                || requestUri.contains("/v3")
-                || requestUri.contains("/auth")
-                || requestUri.contains("/patient")) {
-
+        if (path.startsWith("/swagger-ui")
+                || path.startsWith("/v3/api-docs")
+                || path.equals("/swagger-ui.html")) {
             filterChain.doFilter(request, response);
+            return;
         }
 
         String authHeader = request.getHeader("Authorization");
