@@ -13,7 +13,10 @@ import org.springframework.context.annotation.Configuration;
 public class SwaggerConfig {
     @Bean
     public OpenAPI customOpenAPI() {
-        return new OpenAPI()
+        return new OpenAPI().info(new Info()
+                        .title("MS-USER API")
+                        .version("1.0")
+                        .description("User microservice API documentation"))
                 .addSecurityItem(new SecurityRequirement().addList("BearerAuth"))
                 .components(new Components()
                         .addSecuritySchemes("BearerAuth",

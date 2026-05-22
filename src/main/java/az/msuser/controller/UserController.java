@@ -7,6 +7,7 @@ import az.msuser.dto.userDTOS.PutUserDto;
 import az.msuser.service.impl.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,6 +29,7 @@ public class UserController {
         return userService.loginUser(loginDTO);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<List<GetUserDto>> getUsers(){
         return userService.getUsers();
@@ -43,6 +45,7 @@ public class UserController {
         return userService.updateUser(id,putUserDto,auth);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id){
         return userService.deleteUser(id);
