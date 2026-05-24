@@ -24,6 +24,7 @@ public class JWTUtil {
     public String generateToken(User user) {
         return Jwts.builder()
                 .subject(user.getPhone())
+                .claim("userId", user.getId())
                 .claim("role", user.getRole().name())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
