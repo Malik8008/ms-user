@@ -11,7 +11,8 @@ import java.util.List;
 
 public interface IUserService {
     ResponseEntity<List<GetUserDto>> getUsers();
-    ResponseEntity<GetUserDto> findById(Long id);
+    ResponseEntity<GetUserDto> findById(Long id,Authentication auth);
+    ResponseEntity<GetUserDto> findByIdForInternal(Long id);
     ResponseEntity<String> loginUser(LoginDTO loginDTO);
     GetUserDto registerUser(PostUserDto postUserDto);
     ResponseEntity<GetUserDto> updateUser(Long id, PutUserDto putUserDto, Authentication auth);

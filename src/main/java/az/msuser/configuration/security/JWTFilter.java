@@ -31,13 +31,13 @@ public class JWTFilter extends OncePerRequestFilter {
 
         if (path.startsWith("/swagger-ui")
                 || path.startsWith("/v3/api-docs")
-                || path.startsWith("/user/")
                 || path.startsWith("/swagger-resources")
                 || path.startsWith("/webjars")
                 || path.equals("/swagger-ui.html")
                 || path.equals("/swagger-ui/index.html")
-                || path.startsWith("/user/register")
-                || path.startsWith("/user/login")) {
+                || path.equals("/user/register")
+                || path.equals("/user/login")
+                || path.startsWith("/internal")) {
 
             filterChain.doFilter(request, response);
             return;

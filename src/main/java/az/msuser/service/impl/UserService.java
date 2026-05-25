@@ -43,7 +43,25 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public ResponseEntity<GetUserDto> findById(Long id) {
+    public ResponseEntity<GetUserDto> findById(Long id, Authentication auth) {
+        User user = userRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(()->new IdNotFoundException("User id not found"));
+
+        boolean isUser = auth.getAuthorities()
+                .contains(new SimpleGrantedAuthority("ROLE_USER"));
+
+        if (isUser) {
+            String currentPhone = auth.getName();
+
+            if (!user.getPhone().equals(currentPhone)) {
+                throw new AccessDeniedException("You can only see yourself");
+            }
+        }
+        return ResponseEntity.ok().body(modelMapper.map(user, GetUserDto.class));
+    }
+
+    @Override
+    public ResponseEntity<GetUserDto> findByIdForInternal(Long id) {
         User user = userRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(()->new IdNotFoundException("User id not found"));
         return ResponseEntity.ok().body(modelMapper.map(user, GetUserDto.class));
@@ -105,7 +123,6 @@ public class UserService implements IUserService {
         response.setName(newUser.getName());
         response.setEmail(newUser.getEmail());
         response.setPhone(newUser.getPhone());
-        response.setPassword(passwordEncoder.encode(newUser.getPassword()));
         return ResponseEntity.ok(response);
     }
 
